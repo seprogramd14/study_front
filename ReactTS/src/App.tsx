@@ -54,21 +54,18 @@ function Board({xIsTrue, squares, onPlay}: BoardProps) {
   return (
     <>
       <div className="status">{status}</div>
-      <div className="board-row">
-        <Square value={squares[0]} onHandleClick={() => handleClick(0)}/>
-        <Square value={squares[1]} onHandleClick={() => handleClick(1)}/>
-        <Square value={squares[2]} onHandleClick={() => handleClick(2)}/>
-      </div>
-      <div className="board-row">
-        <Square value={squares[3]} onHandleClick={() => handleClick(3)}/>
-        <Square value={squares[4]} onHandleClick={() => handleClick(4)}/>
-        <Square value={squares[5]} onHandleClick={() => handleClick(5)}/>
-      </div>
-      <div className="board-row">
-        <Square value={squares[6]} onHandleClick={() => handleClick(6)}/>
-        <Square value={squares[7]} onHandleClick={() => handleClick(7)}/>
-        <Square value={squares[8]} onHandleClick={() => handleClick(8)}/>
-      </div>
+      {Array.from({length: 3}, (_, row) => {
+        return (
+          <div className="board-row" key={row}>
+            {Array.from({length: 3}, (_, col) => {
+              const idx = row*3+col
+              return (
+                <Square value={squares[idx]} onHandleClick={() => handleClick(idx)}/>
+              );
+            })}
+          </div>
+        );
+      })}
     </>
   );
 }
