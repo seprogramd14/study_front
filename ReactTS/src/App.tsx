@@ -1,32 +1,117 @@
-function MyButton({title}: {title: string}) {
+import { useState } from "react";
+
+type Squares = (string | null)[]
+interface SquareProps {
+  value: string | null;
+  onHandleClick: () => void;
+}
+
+interface BoardProps {
+  xIsTrue: boolean
+  squares: Squares
+  onPlay: (nextSquares: Squares) => void
+}
+
+function Square({value, onHandleClick}: SquareProps) {
   return (
-    <button>
-      {title}
-    </button>
+    <>
+      <button className="square" onClick={onHandleClick}>{value}</button>
+    </>
   )
 }
 
-interface MyButtonProps {
-  title: string
-  disabled: boolean
+function calculateWinner(squares: Squares) {
+  const lines: number[][] = [
+    [0,1,2], [0,3,6], [0,4,8], [1,4,7],
+    [2,5,8], [2,4,6], [3,4,5], [6,7,8]
+  ]
+  
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i]
+    if (squares[a] !== null && squares[a] === squares[b] && squares[a] == squares[c]) {
+      return squares[a]
+    }
+  }
+  return null
 }
 
-function MyButton2({title, disabled}: MyButtonProps) {
+function Board({xIsTrue, squares, onPlay}: BoardProps) {
+  
+  function handleClick(i: number) {
+    if (calculateWinner(squares) !== null || squares[i] !== null) {
+      return 
+    }
+    const nextSquares: Squares = squares.slice();
+    if (xIsTrue) {
+      nextSquares[i] = "X";
+    }else {
+      nextSquares[i] = "O";
+    }
+    onPlay(nextSquares)
+  }
+  const winner = calculateWinner(squares)
+  let status: string = winner ? (`Winner: ${winner}`) : (`Next Player: ${xIsTrue ? "X" : "O"}`)
   return (
-    <button disabled={disabled}>{title}</button>
-  )
-}
-
-export function App() {
-  return (
-    <div className="app">
-      <h1>Hello Bun + TypeScript + React</h1>
-      <MyButton title={"I'm a button"}/>
-      <div>
-        <MyButton2 title={"I'm a disabled button"} disabled={true} />
+    <>
+      <div className="status">{status}</div>
+      <div className="board-row">
+        <Square value={squares[0]} onHandleClick={() => handleClick(0)}/>
+        <Square value={squares[1]} onHandleClick={() => handleClick(1)}/>
+        <Square value={squares[2]} onHandleClick={() => handleClick(2)}/>
       </div>
-    </div>
+      <div className="board-row">
+        <Square value={squares[3]} onHandleClick={() => handleClick(3)}/>
+        <Square value={squares[4]} onHandleClick={() => handleClick(4)}/>
+        <Square value={squares[5]} onHandleClick={() => handleClick(5)}/>
+      </div>
+      <div className="board-row">
+        <Square value={squares[6]} onHandleClick={() => handleClick(6)}/>
+        <Square value={squares[7]} onHandleClick={() => handleClick(7)}/>
+        <Square value={squares[8]} onHandleClick={() => handleClick(8)}/>
+      </div>
+    </>
   );
 }
 
-export default App;
+export function Game() {
+  const [history, setHistory] = useState<Squares[]>([Array(9).fill(null)])
+  const [currentMove, setCurrentMove] = useState<number>(0)
+  const xIsTrue = currentMove % 2 === 0
+  const currentSquares = history[currentMove]; // 마지막 기록
+
+  function handlePlay(nextSquares: Squares) {
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares]
+    setHistory(nextHistory)
+    setCurrentMove(nextHistory.length - 1)
+  }
+  function jumpTo(nextMove: number) {
+    setCurrentMove(nextMove)
+  }
+
+  const moves = history.map((squares, move) => {
+    let description;
+    if (move > 0) {
+      description = `Go to move #${move}`
+    } else {
+      description = 'Go to game start'
+    }
+    return (
+      <li key={move}>
+        <button onClick={() => jumpTo(move)}>{description}</button>
+      </li>
+    )
+  })
+
+  return (
+    <div className="game">
+      <div className="game-board">
+        <Board xIsTrue={xIsTrue} squares={currentSquares} onPlay={handlePlay}/>
+      </div>
+      <div className="game-info">
+        <ol>{moves}</ol>
+      </div>
+    </div>
+  )
+}
+
+export default Game;
